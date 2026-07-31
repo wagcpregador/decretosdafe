@@ -1,15 +1,72 @@
 <style>
+
+/* BARRA FIXA NO TOPO (100% LARGURA x 4% ALTURA) */
+        .progress-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc((100vw + 250vh) / 100);
+            background-color: #ffffff;
+            border-bottom: 2px solid var(--primary-color);
+            box-sizing: border-box;
+            overflow: hidden;
+            font-size: calc((100vw + 150vh) / 100);
+            font-weight: bold;
+            z-index: 90; /* Abaixo do botão de fechar (100), mas acima do conteúdo */
+            display: none; /* Inicia oculta */
+        }
+
+        .progress-text-bg {
+            position: absolute;
+            top: 0;
+            left: 15px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--primary-color);
+            z-index: 1;
+            white-space: nowrap;
+        }
+
+        .progress-bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .progress-text-fg {
+            position: absolute;
+            top: 0;
+            left: 15px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+
+
         /* CONFIGURAÇÕES GERAIS E FUNDO */
 /* Botão Fechar */
 
 
 #btn-fechar-quiz {
     position: absolute;
-    top: 1px;
-    right: 30px;
+    top: -10px;
+    right: 10px;
     background: none;
     border: none;
-    font-size: 60px;
+    font-size: calc( (100vw + 150vh) / 30 );
     font-weight: bold;
     color: var(--primary-color);
     cursor: pointer;
@@ -115,6 +172,13 @@ overflow: hidden;
         }
 
         /* BOTÕES PADRONIZADOS */
+
+.option-item:has(input:checked) {
+            background-color: #d0e1fd !important; /* Azul claro */
+            
+            font-weight: bold;
+        }
+
         .btn {
             background: var(--primary-color);
             color: white;
@@ -228,7 +292,15 @@ overflow: hidden;
 
 
     <div id="quiz-card">
-      <button id="btn-fechar-quiz" onclick="fecharQuadro()" style="font-size: calc( (100vw + 100vh) / 21 );">×</button>
+<div id="main-progress-bar" class="progress-wrapper">
+          <div class="progress-text-bg" id="prog-text-bg"></div>
+          <div class="progress-bar-fill" id="prog-fill">
+              <div class="progress-text-fg" id="prog-text-fg"></div>
+          </div>
+      </div>
+
+
+      <button id="btn-fechar-quiz" onclick="fecharQuadro()">×</button>
         <div id="screen-wrapper">
             
             <section class="screen">
@@ -295,6 +367,7 @@ const bancoDeQuestoes = [
     correta: 3,
     resumo: "Lucas é chamado pelo apóstolo Paulo de 'o médico amado'. Sua formação acadêmica é evidente em seus escritos através do uso de vocabulário técnico e preciso, além de uma investigação detalhada e ordenada dos fatos sobre a vida de Jesus e o início da igreja primitiva."
   },
+
   {
     pergunta: "Quem foi a primeira pessoa a ver Jesus ressuscitado no domingo de manhã?",
     opcoes: ["Pedro", "João", "Maria, mãe de Jesus", "Maria Madalena", "Salomé"],
@@ -325,6 +398,7 @@ const bancoDeQuestoes = [
     correta: 0,
     resumo: "Golias era um guerreiro de Gate que desafiou o exército de Israel por 40 dias. Davi, ainda jovem pastor, recusou a armadura de Saul e enfrentou o gigante com sua funda e cinco pedras lisas, declarando que a batalha pertencia ao Senhor. Com uma única pedra, ele derrubou o inimigo."
   },
+
   {
     pergunta: "Quem foi o homem que viveu mais tempo na Bíblia, chegando aos 969 anos?",
     opcoes: ["Adão", "Noé", "Enoque", "Matusalém", "Lameque"],
@@ -583,7 +657,10 @@ const bancoDeQuestoes = [
     opcoes: ["A saída do Egito", "A conquista da terra", "Leis de santidade e sacrifícios", "A história dos reis", "Poesias de amor"],
     correta: 2,
     resumo: "Levítico é um manual para os sacerdotes e para o povo, focando na santidade de Deus e no caminho para o homem se aproximar d'Ele. Ele detalha os cinco tipos principais de sacrifícios, as leis de pureza alimentar e ritual, e as festas solenes de Israel, sob o lema 'Sede santos, porque eu sou santo'."
-  }, 
+  },
+
+
+
 ];
 
 
@@ -613,11 +690,32 @@ const bancoDeQuestoes = [
             nextScreen(3);
         }
 
+       
+// Função auxiliar para atualizar a barra fixa no topo
+        function atualizarBarraProgresso() {
+            const barra = document.getElementById('main-progress-bar');
+            const total = shuffledQuestions.length;
+            const currentNum = currentQuestionIndex + 1;
+            const progressPercent = (currentNum / total) * 100;
+            const textContent = `Pergunta ${currentNum} de ${total}`;
+
+            barra.style.display = 'block';
+            document.getElementById('prog-text-bg').innerText = textContent;
+            document.getElementById('prog-text-fg').innerText = textContent;
+            
+            const fill = document.getElementById('prog-fill');
+            fill.style.width = `${progressPercent}%`;
+            
+            const fgText = document.getElementById('prog-text-fg');
+            if (fgText) fgText.style.width = barra.clientWidth + 'px';
+        }
+
         function showQuestion() {
+            atualizarBarraProgresso(); // Mantém a barra atualizada no topo
+
             const q = shuffledQuestions[currentQuestionIndex];
             const container = document.getElementById('question-content');
             container.innerHTML = `
-                <font style="align:left; color: #997300; font-size: calc( (100vw + 100vh) / 70 );"><b>Pergunta ${currentQuestionIndex + 1} de 50</b></font>
                 <div class="question-text">${q.pergunta}</div>
                 <div class="options-container">
                     ${q.opcoes.map((opt, i) => `
@@ -629,40 +727,40 @@ const bancoDeQuestoes = [
             `;
         }
 
- function checkAnswer() {
-    const selected = document.querySelector('input[name="quiz-opt"]:checked');
-    if (!selected) {
-        alert("Por favor, selecione uma resposta!");
-        return;
-    }
+        function checkAnswer() {
+            const selected = document.querySelector('input[name="quiz-opt"]:checked');
+            if (!selected) {
+                alert("Por favor, selecione uma resposta!");
+                return;
+            }
 
-    const answer = parseInt(selected.value);
-    const q = shuffledQuestions[currentQuestionIndex];
-    const isCorrect = answer === q.correta;
+            const answer = parseInt(selected.value);
+            const q = shuffledQuestions[currentQuestionIndex];
+            const isCorrect = answer === q.correta;
 
-    if (isCorrect) score++;
+            if (isCorrect) score++;
 
-    const feedbackContainer = document.getElementById('feedback-content');
-    
-    // O trecho atualizado começa aqui:
-    feedbackContainer.innerHTML = `
-        <div class="feedback-title feedback-zoom ${isCorrect ? 'correct' : 'incorrect'}">
-            ${isCorrect ? 'Certa Resposta ✅' : 'Resposta Incorreta ❌'}
-        </div>
-        
-        <div style="font-weight: bold; margin: 10px 0; color: #333; font-size: calc( (100vw + 100vh) / 70 );">
-            A resposta correta é: ${q.correta + 1}. ${q.opcoes[q.correta]}
-        </div>
+            atualizarBarraProgresso(); // A barra continua visível no topo durante o feedback
 
-        <div class="summary-box">
-            <strong>Explicação:</strong><br>
-            ${q.resumo}
-        </div>
-    `;
-    nextScreen(4);
-}
+            const feedbackContainer = document.getElementById('feedback-content');
+            feedbackContainer.innerHTML = `
+                <div class="feedback-title feedback-zoom ${isCorrect ? 'correct' : 'incorrect'}">
+                    ${isCorrect ? 'Certa Resposta ✅' : 'Resposta Incorreta ❌'}
+                </div>
+                
+                <div style="font-weight: bold; margin: 10px 0; color: #333; font-size: calc( (100vw + 100vh) / 70 );">
+                    A resposta correta é: ${q.correta + 1}. ${q.opcoes[q.correta]}
+                </div>
 
-        function nextQuestion() {
+                <div class="summary-box">
+                    <strong>Explicação:</strong><br>
+                    ${q.resumo}
+                </div>
+            `;
+            nextScreen(4);
+        }
+
+function nextQuestion() {
             currentQuestionIndex++;
             if (currentQuestionIndex < shuffledQuestions.length) {
                 showQuestion();
@@ -672,7 +770,26 @@ const bancoDeQuestoes = [
             }
         }
 
+function fecharQuadro() {
+            const card = document.getElementById('quiz-card');
+            card.classList.add('saida-animada');
+            
+            setTimeout(() => {
+                // Chama a função global presente no Blog para ocultar o container
+                if (typeof window.fecharTesteBiblico === 'function') {
+                    window.fecharTesteBiblico();
+                } else {
+                    const container = document.getElementById('container-teste-biblico');
+                    if (container) container.style.display = 'none';
+                }
+            }, 900);
+        }
+
+
         function showFinalResults() {
+            // Esconde a barra ao chegar na tela final
+            document.getElementById('main-progress-bar').style.display = 'none';
+
             const finalNote = (score * 10) / shuffledQuestions.length;
             const levels = ["Mínimo", "Principiante", "Razoável", "Bom", "Excelente"];
             let level = "";
@@ -694,22 +811,21 @@ const bancoDeQuestoes = [
             triggerCelebration();
         }
 
-        function triggerCelebration() {
-            const particles = ['⭐', '🎈', '✨'];
-            for (let i = 0; i < 30; i++) {
-                setTimeout(() => {
-                    const p = document.createElement('div');
-                    p.className = 'particle';
-                    p.innerText = particles[Math.floor(Math.random() * particles.length)];
-                    p.style.left = Math.random() * 100 + 'vw';
-                    p.style.bottom = '-50px';
-                    document.body.appendChild(p);
-                    setTimeout(() => p.remove(), 3000);
-                }, i * 100);
-            }
+        function resetarTesteManual() {
+            score = 0;
+            currentQuestionIndex = 0;
+            
+            // Garante que a barra fique escondida ao reiniciar até o usuário apertar em 'Iniciar'
+            document.getElementById('main-progress-bar').style.display = 'none';
+            
+            document.getElementById('question-content').innerHTML = "";
+            document.getElementById('feedback-content').innerHTML = "";
+            document.getElementById('quiz-card').classList.remove('saida-animada');
+            
+            nextScreen(0);
         }
 
-        async function shareResults() {
+ async function shareResults() {
             const text = `Fiz o Teste Bíblico e tirei nota ${document.getElementById('score-display').innerText}! Meu nível é ${document.getElementById('level-display').innerText}. Faça um desafio também!`;
             if (navigator.share) {
                 try {
@@ -720,41 +836,6 @@ const bancoDeQuestoes = [
             }
         }
 
-function fecharQuadro() {
-    const card = document.getElementById('quiz-card');
-    
-    // Adiciona a classe de animação inversa
-    card.classList.add('saida-animada');
-    
-    // Remove o elemento ou o container após a animação terminar (500ms)
-    setTimeout(() => {
-        // Se você estiver usando o sistema de carregar via botão do Blog:
-        const container = document.getElementById('container-teste-biblico');
-fecharTesteBiblico() ;
-        if (container) {
-            container.innerHTML = ""; // Limpa o teste
-            // Mostra o botão flutuante novamente se ele existir
-            const btnFlutuante = document.getElementById('btnFlutuanteTeste');
-            if (btnFlutuante) btnFlutuante.style.display = 'flex';
-        }
-    }, 150);
-}
-
-function resetarTesteManual() {
-    // 1. Zera as variáveis de controle
-    score = 0;
-    currentQuestionIndex = 0;
-    
-    // 2. Limpa os conteúdos dinâmicos das telas de pergunta e feedback
-    document.getElementById('question-content').innerHTML = "";
-    document.getElementById('feedback-content').innerHTML = "";
-    
-    // 3. Remove a classe de animação de saída caso o quadro tenha sido fechado/reaberto
-    document.getElementById('quiz-card').classList.remove('saida-animada');
-    
-    // 4. Volta o wrapper de telas para a posição inicial (Tela 1)
-    nextScreen(0);
-}
 
 
     </script>
